@@ -1,23 +1,45 @@
 from midiutil import MIDIFile
 
-midi = MIDIFile(1)
-track = 0
-time = 0
-tempo = 135
-midi.addTempo(track, time, tempo)
+midi = MIDIFile(4)
+tempo = 97
+track_names = ["Acoustic Guitar", "Strings Pad", "Electric Bass", "Percussion"]
+channels = [0, 1, 2, 9]
+programs = [24, 48, 33, None]
+volumes = [100, 70, 80, 90]
 
-melody = [
-    (69, 1, 0), (72, 0.5, 1), (76, 0.5, 1.5), (79, 2, 2),
-    (77, 0.5, 4), (76, 0.5, 4.5), (72, 1, 5), (74, 0.5, 6), (69, 0.5, 6.5),
-    (69, 1, 8), (71, 1, 9), (72, 0.5, 10), (76, 1.5, 10.5),
-    (79, 0.5, 12), (76, 1, 12.5), (72, 1, 13.5), (69, 1, 14.5)
+for i, name in enumerate(track_names):
+    midi.addTrackName(i, 0, name)
+    midi.addTempo(i, 0, tempo)
+    if programs[i] is not None:
+        midi.addProgramChange(i, channels[i], 0, programs[i])
+
+chords = [
+    [64, 68, 71], [61, 64, 68], [57, 61, 64], [59, 62, 66]
 ]
 
-channel = 0
-volume = 100
+for bar in range(4):
+    start_time = bar * 2
+    for i, note in enumerate(chords[bar]):
+        midi.addNote(0, channels[0], note, start_time + i * 0.4, 1.5, volumes[0])
 
-for pitch, duration, start_time in melody:
-    midi.addNote(track, channel, pitch, start_time, duration, volume)
+melody_notes = [64, 66, 68, 71, 68, 66, 64, 62]
+for i, note in enumerate(melody_notes):
+    midi.addNote(0, channels[0], note, 8 + i * 0.5, 1, 110)
 
-with open("yung_kai_blue_inspired_melody.mid", "wb") as output_file:
-    midi.writeFile(output_file)
+for bar, chord in enumerate(chords * 2):
+    for note in chord:
+        midi.addNote(1, channels[1], note, bar * 2, 2, volumes[1])
+
+bassline = [40, 37, 33, 35] * 2
+for bar, note in enumerate(bassline):
+    midi.addNote(2, channels[2], note, bar * 2, 2, volumes[2])
+
+for i in range(16):
+    time = i * 0.5
+    if i % 4 == 0:
+        midi.addNote(3, channels[3], 36, time, 0.25, volumes[3])
+    elif i % 4 == 2:
+        midi.addNote(3, channels[3], 38, time, 0.25, volumes[3])
+
+with open("romantic_acoustic_full_arrangement.mid", "wb") as f:
+    midi.writeFile(f)
